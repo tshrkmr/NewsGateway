@@ -14,6 +14,7 @@ import java.io.InputStreamReader;
 import java.net.HttpURLConnection;
 import java.net.URL;
 import java.nio.charset.StandardCharsets;
+import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.HashSet;
 
@@ -25,6 +26,7 @@ public class SourceDownloaderRunnable implements Runnable{
     private final MainActivity mainActivity;
     private final HashMap<String, String> countryCodes = new HashMap<>();
     private final HashMap<String, String> languageCodes = new HashMap<>();
+    private final ArrayList<NewsSources> newsSourcesList = new ArrayList<>();
     private static final String dataURL = "https://newsapi.org/v2/sources";
     private String apiValue = "38f6b24dd9c94683bc4fd821d1bba0f9";
     private String apiValue2 = "9f195d1f01764b9598c8b2d29108e2bd";
@@ -93,11 +95,12 @@ public class SourceDownloaderRunnable implements Runnable{
         } catch (IOException e) {
             e.printStackTrace();
         }
-
+        HashMap<String, HashSet<String>> topicMap = new HashMap<>();
         HashMap<String, HashSet<String>> countryMap = new HashMap<>();
         HashMap<String, HashSet<String>> languageMap = new HashMap<>();
+        ArrayList<String> allNewsOutlets = new ArrayList<>();
         try {
-            HashMap<String, HashSet<String>> topicMap = new HashMap<>();
+
             JSONObject jsonObject = new JSONObject(s);
             JSONArray jsonArray = jsonObject.getJSONArray("sources");
 
@@ -130,8 +133,8 @@ public class SourceDownloaderRunnable implements Runnable{
                     //Log.d(TAG, "parseJSON: " + country);
                 }
 
-                //NewsSources newsSources = new NewsSources(id, name, category, language, country);
-                if (!topicMap.containsKey(category))
+
+                if (!topicMap.containsKey(category.toUpperCase()))
                     topicMap.put(category.toUpperCase(), new HashSet<>());
 
                 HashSet<String> tSet = topicMap.get(category.toUpperCase());
@@ -139,7 +142,7 @@ public class SourceDownloaderRunnable implements Runnable{
                     tSet.add(name);
                 }
 
-                if (!languageMap.containsKey(language)) {
+                if (!languageMap.containsKey(languageCodes.get(language.toUpperCase()).toString())) {
                     //Log.d(TAG, "parseJSON: " + language + "  " + languageCodes.get(language.toUpperCase()));
                     languageMap.put(languageCodes.get(language.toUpperCase()).toString(), new HashSet<>());
                 }
@@ -150,7 +153,7 @@ public class SourceDownloaderRunnable implements Runnable{
                     //Log.d(TAG, "parseJSON: " + name);
                 }
 
-                if (!countryMap.containsKey(country))
+                if (!countryMap.containsKey(countryCodes.get(country.toUpperCase()).toString()))
                     countryMap.put(countryCodes.get(country.toUpperCase()).toString(), new HashSet<>());
 
                 HashSet<String> cSet = countryMap.get(countryCodes.get(country.toUpperCase()).toString());
@@ -158,9 +161,12 @@ public class SourceDownloaderRunnable implements Runnable{
                     cSet.add(name);
                     //Log.d(TAG, "parseJSON: " + name);
                 }
+                allNewsOutlets.add(name);
+                NewsSources newsSources = new NewsSources(id, name, category.toUpperCase(), languageCodes.get(language.toUpperCase()), countryCodes.get(country.toUpperCase()));
             }
             if (topicMap != null && languageMap != null && countryMap != null) {
-                mainActivity.runOnUiThread(() -> mainActivity.setUpSources(topicMap, languageMap, countryMap));
+                Log.d(TAG, "parseJSON: " + languageMap);
+                mainActivity.runOnUiThread(() -> mainActivity.setUpSources(topicMap, languageMap, countryMap, allNewsOutlets));
                 //context.setUpSources(sourcesMap);
             }
         } catch (Exception e) {

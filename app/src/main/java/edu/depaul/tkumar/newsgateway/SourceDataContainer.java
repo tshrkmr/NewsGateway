@@ -82,7 +82,7 @@ class SourceDataContainer implements Runnable{
                 }
 
                 //NewsSources newsSources = new NewsSources(id, name, category, language, country);
-                if (!topicMap.containsKey(category))
+                if (!topicMap.containsKey(category.toUpperCase()))
                     topicMap.put(category.toUpperCase(), new HashSet<>());
 
                 HashSet<String> tSet = topicMap.get(category);
@@ -90,7 +90,7 @@ class SourceDataContainer implements Runnable{
                     tSet.add(name);
                 }
 
-                if (!languageMap.containsKey(language)) {
+                if (!languageMap.containsKey(language.toUpperCase())) {
                     //Log.d(TAG, "parseJSON: " + language + "  " + languageCodes.get(language.toUpperCase()));
                     languageMap.put(languageCodes.get(language.toUpperCase()), new HashSet<>());
                 }
@@ -100,7 +100,7 @@ class SourceDataContainer implements Runnable{
                     lSet.add(name);
                 }
 
-                if (!countryMap.containsKey(country))
+                if (!countryMap.containsKey(country.toUpperCase()))
                     countryMap.put(countryCodes.get(country.toUpperCase()).toString(), new HashSet<>());
 
                 HashSet<String> cSet = topicMap.get(country);
@@ -109,7 +109,7 @@ class SourceDataContainer implements Runnable{
                 }
             }
             if (topicMap != null && languageMap != null && countryMap != null) {
-                context.runOnUiThread(() -> context.setUpSources(topicMap, languageMap, countryMap));
+                //context.runOnUiThread(() -> context.setUpSources(topicMap, languageMap, countryMap));
                 //context.setUpSources(sourcesMap);
             }
         } catch (
