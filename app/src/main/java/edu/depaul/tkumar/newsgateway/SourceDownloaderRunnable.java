@@ -26,7 +26,6 @@ public class SourceDownloaderRunnable implements Runnable{
     private final MainActivity mainActivity;
     private final HashMap<String, String> countryCodes = new HashMap<>();
     private final HashMap<String, String> languageCodes = new HashMap<>();
-    private final ArrayList<NewsSources> newsSourcesList = new ArrayList<>();
     private static final String dataURL = "https://newsapi.org/v2/sources";
     private String apiValue = "38f6b24dd9c94683bc4fd821d1bba0f9";
     private String apiValue2 = "9f195d1f01764b9598c8b2d29108e2bd";
@@ -98,7 +97,9 @@ public class SourceDownloaderRunnable implements Runnable{
         HashMap<String, HashSet<String>> topicMap = new HashMap<>();
         HashMap<String, HashSet<String>> countryMap = new HashMap<>();
         HashMap<String, HashSet<String>> languageMap = new HashMap<>();
+        HashMap<String, String> idNameMap = new HashMap<>();
         ArrayList<String> allNewsOutlets = new ArrayList<>();
+
         try {
 
             JSONObject jsonObject = new JSONObject(s);
@@ -133,7 +134,6 @@ public class SourceDownloaderRunnable implements Runnable{
                     //Log.d(TAG, "parseJSON: " + country);
                 }
 
-
                 if (!topicMap.containsKey(category.toUpperCase()))
                     topicMap.put(category.toUpperCase(), new HashSet<>());
 
@@ -161,12 +161,15 @@ public class SourceDownloaderRunnable implements Runnable{
                     cSet.add(name);
                     //Log.d(TAG, "parseJSON: " + name);
                 }
-                allNewsOutlets.add(name);
-                NewsSources newsSources = new NewsSources(id, name, category.toUpperCase(), languageCodes.get(language.toUpperCase()), countryCodes.get(country.toUpperCase()));
+                //allNewsOutlets.add(name);
+//                if (!idNameMap.containsKey(id))
+//                    idNameMap.put(id, name);
+                mainActivity.updateIdNameMap(id, name);
+                //NewsSources newsSources = new NewsSources(id, name, category.toUpperCase(), languageCodes.get(language.toUpperCase()), countryCodes.get(country.toUpperCase()));
             }
             if (topicMap != null && languageMap != null && countryMap != null) {
                 Log.d(TAG, "parseJSON: " + languageMap);
-                mainActivity.runOnUiThread(() -> mainActivity.setUpSources(topicMap, languageMap, countryMap, allNewsOutlets));
+                mainActivity.runOnUiThread(() -> mainActivity.setUpSources(topicMap, languageMap, countryMap));
                 //context.setUpSources(sourcesMap);
             }
         } catch (Exception e) {

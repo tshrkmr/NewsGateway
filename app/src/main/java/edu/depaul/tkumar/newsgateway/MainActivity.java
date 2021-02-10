@@ -2,17 +2,26 @@ package edu.depaul.tkumar.newsgateway;
 
 import androidx.annotation.NonNull;
 import androidx.appcompat.app.ActionBarDrawerToggle;
+import androidx.appcompat.app.AlertDialog;
 import androidx.appcompat.app.AppCompatActivity;
 import androidx.drawerlayout.widget.DrawerLayout;
+import androidx.fragment.app.Fragment;
+import androidx.fragment.app.FragmentManager;
+import androidx.fragment.app.FragmentPagerAdapter;
+import androidx.viewpager.widget.ViewPager;
 
+import android.content.DialogInterface;
 import android.content.res.Configuration;
 import android.os.Bundle;
 import android.util.Log;
+import android.view.LayoutInflater;
 import android.view.Menu;
 import android.view.MenuItem;
 import android.view.SubMenu;
+import android.view.View;
 import android.widget.ArrayAdapter;
 import android.widget.ListView;
+import android.widget.TextView;
 
 import java.util.ArrayList;
 import java.util.Collection;
@@ -32,18 +41,25 @@ public class MainActivity extends AppCompatActivity {
     private final HashMap<String, ArrayList<String>> topicsData = new HashMap<>();
     private final HashMap<String, ArrayList<String>> languageData = new HashMap<>();
     private final HashMap<String, ArrayList<String>> countryData = new HashMap<>();
-    private final ArrayList<String> newsOutletsDisplayed = new ArrayList<>();
+    private final HashMap<String, String> nameIDMap = new HashMap<>();
+    private final ArrayList<String> allNewsOutlets =new ArrayList<>();
+    private final ArrayList<String> newsSourcesDisplayed = new ArrayList<>();
     private String prev;
     String topic = "All";
     String language = "All";
     String country = "All";
-    private String stringTopics = "Topics";
-    private String stringCountries = "Countries";
-    private String stringLanguages = "Languages";
+    private final String stringTopics = "Topics";
+    private final String stringCountries = "Countries";
+    private final String stringLanguages = "Languages";
     private DrawerLayout drawerLayout;
     private ListView listView;
     private ActionBarDrawerToggle actionBarDrawerToggle;
     private Menu menu;
+    private List<Fragment> fragments;
+    private ViewPager pager;
+    private String currentNewsSource;
+    //private String getCurrentNewsSourceId;
+    private MyPageAdapter pageAdapter;
     private static final String TAG = "MainActivity";
 
     @Override
@@ -59,11 +75,12 @@ public class MainActivity extends AppCompatActivity {
     private void initializeLayout(){
         drawerLayout = findViewById(R.id.mainDrawerlayout);
         listView = findViewById(R.id.mainDrawerList);
+        pager = findViewById(R.id.mainViewpager);
 
         // Set up the drawer item click callback method
         listView.setOnItemClickListener(
                 (parent, view, position, id) -> {
-                    //selectItem(position);
+                    selectItem(position);
                     drawerLayout.closeDrawer(listView);
                 }
         );
@@ -75,6 +92,10 @@ public class MainActivity extends AppCompatActivity {
                 R.string.drawer_open,  /* "open drawer" description for accessibility */
                 R.string.drawer_close  /* "close drawer" description for accessibility */
         );
+
+        fragments = new ArrayList<>();
+        pageAdapter = new MyPageAdapter(getSupportFragmentManager());
+        pager.setAdapter(pageAdapter);
     }
 
     // You need this to set up the options menu
@@ -84,11 +105,16 @@ public class MainActivity extends AppCompatActivity {
         return true;
     }
 
-    public void setUpSources(HashMap<String, HashSet<String>> topicMapIn, HashMap<String, HashSet<String>> languageMapIn, HashMap<String, HashSet<String>> coountryMapIn, ArrayList<String> allNewsOutlets){
+    public void updateIdNameMap(String id, String name){
+        allNewsOutlets.add(name);
+        nameIDMap.put(name, id);
+    }
+
+    public void setUpSources(HashMap<String, HashSet<String>> topicMapIn, HashMap<String, HashSet<String>> languageMapIn, HashMap<String, HashSet<String>> coountryMapIn){
         topicsData.clear();
         languageData.clear();
         countryData.clear();
-        newsOutletsDisplayed.clear();
+        newsSourcesDisplayed.clear();
         ArrayList<String> allTopics = new ArrayList<>();
         ArrayList<String> allLanguages = new ArrayList<>();
         ArrayList<String> allCountries = new ArrayList<>();
@@ -101,7 +127,7 @@ public class MainActivity extends AppCompatActivity {
             topicsData.put(s, subTopics);
             allTopics.addAll(subTopics);
             //allNewsOutlets1.addAll(subTopics);
-            Log.d(TAG, "setUpSources: " + s + " " +  subTopics);
+            //Log.d(TAG, "setUpSources: " + s + " " +  subTopics);
         }
         Collections.sort(allTopics);
         topicsData.put("All", allTopics);
@@ -149,18 +175,16 @@ public class MainActivity extends AppCompatActivity {
         for (String s : tempLanguageList)
             languageMenu.add(s);
 
-
-        newsOutletsDisplayed.addAll(allNewsOutlets);
-        Collections.sort(newsOutletsDisplayed);
-        setTitle(String.format(Locale.getDefault(),"News Gateway (%d)", newsOutletsDisplayed.size() ));
-        listView.setAdapter(new ArrayAdapter<>(this, R.layout.drawer_item, newsOutletsDisplayed));
+        newsSourcesDisplayed.addAll(allNewsOutlets);
+        Collections.sort(newsSourcesDisplayed);
+        setTitle(String.format(Locale.getDefault(),"News Gateway (%d)", newsSourcesDisplayed.size() ));
+        listView.setAdapter(new ArrayAdapter<>(this, R.layout.drawer_item, newsSourcesDisplayed));
 
         if (getSupportActionBar() != null) {
             getSupportActionBar().setDisplayHomeAsUpEnabled(true);
             getSupportActionBar().setHomeButtonEnabled(true);
         }
     }
-
     // You need the 2 below to make the drawer-toggle work properly:
 
     @Override
@@ -187,46 +211,22 @@ public class MainActivity extends AppCompatActivity {
             return true;
         }
         String title = item.getTitle().toString();
-        if(title.equals(stringTopics) || title.equals(stringCountries) || title.equals(stringLanguages))
+        if(title.equals(stringTopics) || title.equals(stringCountries) || title.equals(stringLanguages)) {
             prev = title;
-
+            return true;
+        }
 
         if(topicsData.containsKey(title) && prev.equals(stringTopics)) {
             topic = title;
-//            newsOutletsDisplayed.clear();
-//            ArrayList<String> lst = topicsData.get(item.getTitle().toString());
-//            if (lst != null) {
-//                newsOutletsDisplayed.addAll(lst);
-//            }
-//            setTitle(String.format(Locale.getDefault(),"News Gateway (%d)", newsOutletsDisplayed.size() ));
-//
-//            ((ArrayAdapter) listView.getAdapter()).notifyDataSetChanged();
-        }
-
-        if(languageData.containsKey(title) && prev.equals(stringLanguages)) {
-            language = title;
-//            newsOutletsDisplayed.clear();
-//            ArrayList<String> lst = languageData.get(item.getTitle().toString());
-//            if (lst != null) {
-//                newsOutletsDisplayed.addAll(lst);
-//            }
-//            setTitle(String.format(Locale.getDefault(),"News Gateway (%d)", newsOutletsDisplayed.size() ));
-//
-//            ((ArrayAdapter) listView.getAdapter()).notifyDataSetChanged();
         }
         if(countryData.containsKey(title) && prev.equals(stringCountries)) {
             country = title;
-//            newsOutletsDisplayed.clear();
-//            ArrayList<String> lst = countryData.get(item.getTitle().toString());
-//            if (lst != null) {
-//                newsOutletsDisplayed.addAll(lst);
-//            }
-//            setTitle(String.format(Locale.getDefault(),"News Gateway (%d)", newsOutletsDisplayed.size() ));
-//
-//            ((ArrayAdapter) listView.getAdapter()).notifyDataSetChanged();
         }
-        prev = title;
-        newsOutletsDisplayed.clear();
+        if(languageData.containsKey(title) && prev.equals(stringLanguages)) {
+            language = title;
+        }
+
+        newsSourcesDisplayed.clear();
         List<List<String>> lists = new ArrayList<List<String>>();
         ArrayList<String> tLst = topicsData.get(topic);
         lists.add(tLst);
@@ -234,10 +234,11 @@ public class MainActivity extends AppCompatActivity {
         lists.add(lLst);
         ArrayList<String> cLst = countryData.get(country);
         lists.add(cLst);
-        newsOutletsDisplayed.addAll(getCommonElements(lists));
-        Log.d(TAG, "onOptionsItemSelected: " + getCommonElements(lists));
-
-        setTitle(String.format(Locale.getDefault(),"News Gateway (%d)", newsOutletsDisplayed.size() ));
+        newsSourcesDisplayed.addAll(getCommonElements(lists));
+        if(newsSourcesDisplayed.size() == 0){
+            noNewsSourceDialog(topic, country, language);
+        }
+        setTitle(String.format(Locale.getDefault(),"News Gateway (%d)", newsSourcesDisplayed.size() ));
 
         ((ArrayAdapter) listView.getAdapter()).notifyDataSetChanged();
         return super.onOptionsItemSelected(item);
@@ -253,5 +254,94 @@ public class MainActivity extends AppCompatActivity {
             }
         }
         return common;
+    }
+
+    private void noNewsSourceDialog(String topic, String country, String language){
+        LayoutInflater layoutInflater = LayoutInflater.from(this);
+        final View view = layoutInflater.inflate(R.layout.dialog_no_news_sources, null);
+        AlertDialog.Builder builder = new AlertDialog.Builder(this);
+        builder.setTitle("No Sources");
+        builder.setMessage("No News Sources match your criteria:");
+        builder.setView(view);
+        TextView topicTextview = view.findViewById(R.id.dialogTopicTextView);
+        TextView countryTextview = view.findViewById(R.id.dialogCountryTextView);
+        TextView languageTextView = view.findViewById(R.id.dialogLanguageTextView);
+        topicTextview.setText(String.format("Topic: %s", topic));
+        countryTextview.setText(String.format("Country: %s", country));
+        languageTextView.setText(String.format("Language: %s", language));
+        builder.setPositiveButton("OK", new DialogInterface.OnClickListener() {
+            @Override
+            public void onClick(DialogInterface dialog, int which) {
+
+            }
+        });
+        AlertDialog dialog = builder.create();
+        dialog.show();
+    }
+
+    private void selectItem(int position) {
+        pager.setBackground(null);
+        currentNewsSource = newsSourcesDisplayed.get(position);
+        new Thread(new NewsDownloaderRunnable(this, nameIDMap.get(currentNewsSource))).start();
+        drawerLayout.closeDrawer(listView);
+    }
+
+    public void setTopHeadlines(ArrayList<NewsHeadline> newsHeadlineArrayList){
+        setTitle(currentNewsSource);
+
+        for (int i = 0; i < pageAdapter.getCount(); i++)
+            pageAdapter.notifyChangeInPosition(i);
+        fragments.clear();
+
+        for (int i = 0; i < newsHeadlineArrayList.size(); i++) {
+            fragments.add(
+                    NewsFragment.newInstance(newsHeadlineArrayList.get(i), i+1, newsHeadlineArrayList.size()));
+        }
+
+        pageAdapter.notifyDataSetChanged();
+        pager.setCurrentItem(0);
+    }
+    //////////////////////////////////////////////////////////////////////////////
+     //Standard adapter code here
+    private class MyPageAdapter extends FragmentPagerAdapter {
+        private long baseId = 0;
+
+
+        MyPageAdapter(FragmentManager fm) {
+            super(fm, BEHAVIOR_RESUME_ONLY_CURRENT_FRAGMENT);
+        }
+
+        @Override
+        public int getItemPosition(@NonNull Object object) {
+            return POSITION_NONE;
+        }
+
+        @NonNull
+        @Override
+        public Fragment getItem(int position) {
+            return fragments.get(position);
+        }
+
+        @Override
+        public int getCount() {
+            return fragments.size();
+        }
+
+        @Override
+        public long getItemId(int position) {
+            // give an ID different from position when position has been changed
+            return baseId + position;
+        }
+
+        /**
+         * Notify that the position of a fragment has been changed.
+         * Create a new ID for each position to force recreation of the fragment
+         * @param n number of items which have been changed
+         */
+        void notifyChangeInPosition(int n) {
+            // shift the ID returned by getItemId outside the range of all previous fragments
+            baseId += getCount() + n;
+        }
+
     }
 }

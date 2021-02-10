@@ -1,64 +1,122 @@
 package edu.depaul.tkumar.newsgateway;
 
+import android.net.ParseException;
+import android.os.Build;
 import android.os.Bundle;
 
+import androidx.annotation.RequiresApi;
 import androidx.fragment.app.Fragment;
+import androidx.annotation.NonNull;
 
+import android.util.Log;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
+import android.widget.ImageView;
+import android.widget.TextView;
 
-/**
- * A simple {@link Fragment} subclass.
- * Use the {@link NewsFragment#newInstance} factory method to
- * create an instance of this fragment.
- */
+import com.squareup.picasso.Picasso;
+
+import java.time.LocalDateTime;
+import java.time.format.DateTimeFormatter;
+import java.util.ArrayList;
+import java.util.List;
+import java.util.Locale;
+
 public class NewsFragment extends Fragment {
-
-    // TODO: Rename parameter arguments, choose names that match
-    // the fragment initialization parameters, e.g. ARG_ITEM_NUMBER
-    private static final String ARG_PARAM1 = "param1";
-    private static final String ARG_PARAM2 = "param2";
-
-    // TODO: Rename and change types of parameters
-    private String mParam1;
-    private String mParam2;
+    private static final String TAG = "NewsFragment";
 
     public NewsFragment() {
         // Required empty public constructor
     }
 
-    /**
-     * Use this factory method to create a new instance of
-     * this fragment using the provided parameters.
-     *
-     * @param param1 Parameter 1.
-     * @param param2 Parameter 2.
-     * @return A new instance of fragment NewsFragment.
-     */
-    // TODO: Rename and change types and number of parameters
-    public static NewsFragment newInstance(String param1, String param2) {
+    public static NewsFragment newInstance(NewsHeadline newsHeadline, int index, int max) {
         NewsFragment fragment = new NewsFragment();
-        Bundle args = new Bundle();
-        args.putString(ARG_PARAM1, param1);
-        args.putString(ARG_PARAM2, param2);
+        Bundle args = new Bundle(1);
+        args.putSerializable("News_DATA", newsHeadline);
+        args.putSerializable("INDEX", index);
+        args.putSerializable("Total_COUNT", max);
         fragment.setArguments(args);
         return fragment;
     }
 
+
+    @RequiresApi(api = Build.VERSION_CODES.O)
     @Override
-    public void onCreate(Bundle savedInstanceState) {
-        super.onCreate(savedInstanceState);
-        if (getArguments() != null) {
-            mParam1 = getArguments().getString(ARG_PARAM1);
-            mParam2 = getArguments().getString(ARG_PARAM2);
+    public View onCreateView(@NonNull LayoutInflater inflater, ViewGroup container,
+                             Bundle savedInstanceState) {
+        // Inflate the layout for this fragment
+        View fragment_layout = inflater.inflate(R.layout.fragment_news, container, false);
+        Bundle args = getArguments();
+        if (args != null) {
+            final NewsHeadline currentNewsHeadline = (NewsHeadline) args.getSerializable("News_DATA");
+            if (currentNewsHeadline == null) {
+                return null;
+            }
+            int index = args.getInt("INDEX");
+            int total = args.getInt("Total_COUNT");
+
+            TextView newsTitleTextView = fragment_layout.findViewById(R.id.fragmentNewsTitleTextView);
+            TextView dateTextView = fragment_layout.findViewById(R.id.fragmentDateTextView);
+            TextView authorTextView = fragment_layout.findViewById(R.id.fragmentAuthorTextView);
+            TextView descriptionTextView = fragment_layout.findViewById(R.id.fragmentDescriptionTextView);
+            TextView pageNumberTextView = fragment_layout.findViewById(R.id.fragmentPagenumberTextView);
+            ImageView imageView = fragment_layout.findViewById(R.id.fragmentImageView);
+
+            newsTitleTextView.setText(currentNewsHeadline.getTitle());
+
+            String publishedAt = currentNewsHeadline.getPublishedAt();
+            if (publishedAt.equals("") || publishedAt.equals("no value returned")) {
+                dateTextView.setVisibility(View.INVISIBLE);
+            } else {
+//                DateTimeFormatter formatter = DateTimeFormatter.ISO_OFFSET_DATE_TIME;
+//                LocalDateTime dateTime = LocalDateTime.parse(publishedAt, formatter);
+
+                LocalDateTime dateTime = convertDates(publishedAt);
+                DateTimeFormatter formatter1 = DateTimeFormatter.ofPattern("MMM dd, y H:mm");
+                String convertedDateTime = formatter1.format(dateTime);
+                //Log.d(TAG, "onCreateView: " + convertedDateTime);
+                dateTextView.setText(convertedDateTime);
+            }
+            String author = currentNewsHeadline.getAuthor();
+            if (author.equals("") || author.equals("no value returned")) {
+                authorTextView.setVisibility(View.INVISIBLE);
+            } else {
+                authorTextView.setText(currentNewsHeadline.getAuthor());
+            }
+            descriptionTextView.setText(currentNewsHeadline.getDescription());
+            pageNumberTextView.setText(String.format(Locale.US, "%d of %d", index, total));
+            String urlToImage = currentNewsHeadline.getUrlToImage();
+            if (!urlToImage.equals("no value returned") && !urlToImage.equals("")) {
+                Picasso.get().load(currentNewsHeadline.getUrlToImage())
+                        //.resize(width, height)
+                        .placeholder(R.drawable.loading)
+                        .error(R.drawable.brokenimage)
+                        .into(imageView);
+            }
+
+            return fragment_layout;
+        } else {
+            return null;
         }
     }
 
-    @Override
-    public View onCreateView(LayoutInflater inflater, ViewGroup container,
-                             Bundle savedInstanceState) {
-        // Inflate the layout for this fragment
-        return inflater.inflate(R.layout.fragment_news, container, false);
+    @RequiresApi(api = Build.VERSION_CODES.O)
+    private LocalDateTime convertDates(String unformattedDate) {
+        ArrayList<DateTimeFormatter> knownFormats = new ArrayList<>();
+        DateTimeFormatter formatter = DateTimeFormatter.ofPattern("y-MM-dd'T'H:mm:ss'Z'");
+        knownFormats.add(formatter);
+        DateTimeFormatter formatter1 = DateTimeFormatter.ISO_OFFSET_DATE_TIME;
+        knownFormats.add(formatter1);
+
+        for (DateTimeFormatter dtf : knownFormats) {
+            try {
+                LocalDateTime dateTime = LocalDateTime.parse(unformattedDate, dtf);
+                return dateTime;
+            } catch (ParseException e) {
+                e.printStackTrace();
+            }
+        }
+        return null;
     }
 }

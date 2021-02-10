@@ -8,9 +8,10 @@
     tools:context=".MainActivity">
 
     <androidx.viewpager.widget.ViewPager
-        android:id="@+id/viewpager"
+        android:id="@+id/mainViewpager"
         android:layout_width="fill_parent"
-        android:layout_height="fill_parent" />
+        android:layout_height="fill_parent"
+        android:background="@drawable/jon_tyson_xmmsdtigsfo_unsplash" />
 
     <ListView
         android:id="@+id/mainDrawerList"
