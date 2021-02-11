@@ -25,7 +25,7 @@ public class SourceDownloaderRunnable implements Runnable{
 
     private final HashMap<String, String> languageCodes = new HashMap<>();
     private final HashMap<String, String> countryCodes = new HashMap<>();
-    private ArrayList<String> colors = new ArrayList<>();
+    private final ArrayList<String> colors = new ArrayList<>();
     private static final String dataURL = "https://newsapi.org/v2/sources";
     private final MainActivity mainActivity;
     private static final String TAG = "SourceDownloaderRunnable";
@@ -77,6 +77,7 @@ public class SourceDownloaderRunnable implements Runnable{
                     sb.append(line).append('\n');
                 }
                 conn.disconnect();
+                mainActivity.runOnUiThread(()->mainActivity.showError(sb.toString()));
                 Log.d(TAG, "run: " + sb.toString());
             }
         } catch (Exception e) {
@@ -93,7 +94,7 @@ public class SourceDownloaderRunnable implements Runnable{
         }
         HashMap<String, HashSet<String>> topicMap = new HashMap<>();
         HashMap<String, HashSet<String>> countryMap = new HashMap<>();
-        HashMap<String, HashSet<String>> languageMap = new HashMap<>();;
+        HashMap<String, HashSet<String>> languageMap = new HashMap<>();
         try {
 
             JSONObject jsonObject = new JSONObject(s);
@@ -127,8 +128,6 @@ public class SourceDownloaderRunnable implements Runnable{
                     //Log.d(TAG, "parseJSON: " + country);
                 }
 
-
-
                 if (!topicMap.containsKey(category.toUpperCase())) {
                     mainActivity.setUpColorMap(category, colors.get(j));
                     j++;
@@ -141,21 +140,21 @@ public class SourceDownloaderRunnable implements Runnable{
                     tSet.add(name);
                 }
 
-                if (!languageMap.containsKey(languageCodes.get(language.toUpperCase()).toString())) {
+                if (!languageMap.containsKey(languageCodes.get(language.toUpperCase()))) {
                     //Log.d(TAG, "parseJSON: " + language + "  " + languageCodes.get(language.toUpperCase()));
-                    languageMap.put(languageCodes.get(language.toUpperCase()).toString(), new HashSet<>());
+                    languageMap.put(languageCodes.get(language.toUpperCase()), new HashSet<>());
                 }
 
-                HashSet<String> lSet = languageMap.get(languageCodes.get(language.toUpperCase()).toString());
+                HashSet<String> lSet = languageMap.get(languageCodes.get(language.toUpperCase()));
                 if (lSet != null) {
                     lSet.add(name);
                     //Log.d(TAG, "parseJSON: " + name);
                 }
 
-                if (!countryMap.containsKey(countryCodes.get(country.toUpperCase()).toString()))
-                    countryMap.put(countryCodes.get(country.toUpperCase()).toString(), new HashSet<>());
+                if (!countryMap.containsKey(countryCodes.get(country.toUpperCase())))
+                    countryMap.put(countryCodes.get(country.toUpperCase()), new HashSet<>());
 
-                HashSet<String> cSet = countryMap.get(countryCodes.get(country.toUpperCase()).toString());
+                HashSet<String> cSet = countryMap.get(countryCodes.get(country.toUpperCase()));
                 if (cSet != null) {
                     cSet.add(name);
                     //Log.d(TAG, "parseJSON: " + name);
@@ -163,11 +162,11 @@ public class SourceDownloaderRunnable implements Runnable{
                 mainActivity.updateIdNameMap(id, name);
                 //NewsSources newsSources = new NewsSources(id, name, category.toUpperCase(), languageCodes.get(language.toUpperCase()), countryCodes.get(country.toUpperCase()));
             }
-            if (topicMap != null && languageMap != null && countryMap != null) {
+            //if (topicMap != null && languageMap != null && countryMap != null) {
                 Log.d(TAG, "parseJSON: " + languageMap);
                 mainActivity.runOnUiThread(() -> mainActivity.setUpSources(topicMap, languageMap, countryMap));
                 //context.setUpSources(sourcesMap);
-            }
+            //}
         } catch (Exception e) {
             e.printStackTrace();
         }

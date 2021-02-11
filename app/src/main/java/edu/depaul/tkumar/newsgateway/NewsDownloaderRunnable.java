@@ -7,12 +7,9 @@ import org.json.JSONArray;
 import org.json.JSONObject;
 
 import java.io.BufferedReader;
-import java.io.IOException;
 import java.io.InputStreamReader;
 import java.net.URL;
 import java.util.ArrayList;
-import java.util.HashMap;
-import java.util.HashSet;
 
 import javax.net.ssl.HttpsURLConnection;
 
@@ -68,6 +65,7 @@ public class NewsDownloaderRunnable implements Runnable{
                     sb.append(line).append('\n');
                 }
                 conn.disconnect();
+                mainActivity.runOnUiThread(()->mainActivity.showError(sb.toString()));
                 Log.d(TAG, "run: " + sb.toString());
             }
         } catch (Exception e) {

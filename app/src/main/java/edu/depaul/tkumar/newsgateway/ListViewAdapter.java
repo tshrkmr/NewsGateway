@@ -46,7 +46,7 @@ public class ListViewAdapter extends ArrayAdapter <String> {
             if(s.equals("All"))
                 continue;
             ArrayList<String> list = topicsData.get(s);
-            if(list.contains(item)){
+            if(list != null && list.contains(item)){
                 String color = colorCodes.get(s);
                 //Log.d(TAG, "getView: " + color);
                 text.setTextColor(Color.parseColor(color));

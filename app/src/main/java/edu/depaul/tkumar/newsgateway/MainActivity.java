@@ -25,19 +25,16 @@ import android.view.View;
 
 import android.widget.ArrayAdapter;
 import android.widget.ListView;
+import android.widget.ProgressBar;
 import android.widget.TextView;
 
 import java.util.ArrayList;
-import java.util.Collection;
 import java.util.Collections;
 import java.util.HashMap;
 import java.util.HashSet;
-import java.util.Iterator;
-import java.util.LinkedHashSet;
 
 import java.util.List;
 import java.util.Locale;
-import java.util.Set;
 
 public class MainActivity extends AppCompatActivity {
 
@@ -48,18 +45,22 @@ public class MainActivity extends AppCompatActivity {
     private final HashMap<String, String> nameIDMap = new HashMap<>();
     private final ArrayList<String> newsSourcesDisplayed = new ArrayList<>();
     private final ArrayList<String> allNewsOutlets =new ArrayList<>();
-    private String currentNewsSource;
-    private String prev;
-    private String topic = "All";
-    private String language = "All";
-    private String country = "All";
     private ActionBarDrawerToggle actionBarDrawerToggle;
     private DrawerLayout drawerLayout;
     private List<Fragment> fragments;
+    private ProgressBar progressBar;
     private ListView listView;
     private MyPageAdapter pageAdapter;
     private ViewPager pager;
     private Menu menu;
+    private String currentNewsSource;
+    private String prev;
+    private final String stringTopics = "Topics";
+    private final String stringCountries = "Countries";
+    private final String stringLanguages = "Languages";
+    private String topic = "All";
+    private String language = "All";
+    private String country = "All";
     private static final String TAG = "MainActivity";
 
     @Override
@@ -69,6 +70,7 @@ public class MainActivity extends AppCompatActivity {
 
         initializeLayout();
         if(topicsData.isEmpty())
+            progressBar.setVisibility(View.VISIBLE);
             new Thread(new SourceDownloaderRunnable(this)).start();
     }
 
@@ -76,6 +78,7 @@ public class MainActivity extends AppCompatActivity {
         drawerLayout = findViewById(R.id.mainDrawerlayout);
         listView = findViewById(R.id.mainDrawerList);
         pager = findViewById(R.id.mainViewpager);
+        progressBar = findViewById(R.id.mainProgressBar);
 
         // Set up the drawer item click callback method
         listView.setOnItemClickListener(
@@ -115,7 +118,7 @@ public class MainActivity extends AppCompatActivity {
         nameIDMap.put(name, id);
     }
 
-    public void setUpSources(HashMap<String, HashSet<String>> topicMapIn, HashMap<String, HashSet<String>> languageMapIn, HashMap<String, HashSet<String>> coountryMapIn){
+    public void setUpSources(HashMap<String, HashSet<String>> topicMapIn, HashMap<String, HashSet<String>> languageMapIn, HashMap<String, HashSet<String>> countryMapIn){
         topicsData.clear();
         languageData.clear();
         countryData.clear();
@@ -137,26 +140,25 @@ public class MainActivity extends AppCompatActivity {
         topicsData.put("All", allTopics);
         ArrayList<String> tempTopicList = new ArrayList<>(topicsData.keySet());
         Collections.sort(tempTopicList);
-        SubMenu topicsMenu = menu.addSubMenu(R.string.topics);
+        SubMenu topicsMenu = menu.addSubMenu(stringTopics);
         int i = 0;
         for (String s : tempTopicList) {
             topicsMenu.add(s);
             if(i==0){
                 i++;
                 continue;
-            }else {
-                final MenuItem menuItem = topicsMenu.getItem(i);
-                i++;
-                SpannableString spannableString = new SpannableString(menuItem.getTitle().toString());
-                String color = colorCodes.get(spannableString.toString());
-                spannableString.setSpan(new ForegroundColorSpan(Color.parseColor(color)), 0, spannableString.length(), 0);
-                menuItem.setTitle(spannableString);
             }
+            final MenuItem menuItem = topicsMenu.getItem(i);
+            i++;
+            SpannableString spannableString = new SpannableString(menuItem.getTitle().toString());
+            String color = colorCodes.get(spannableString.toString());
+            spannableString.setSpan(new ForegroundColorSpan(Color.parseColor(color)), 0, spannableString.length(), 0);
+            menuItem.setTitle(spannableString);
         }
 
 
-        for (String s : coountryMapIn.keySet()) {
-            HashSet<String> cSet = coountryMapIn.get(s);
+        for (String s : countryMapIn.keySet()) {
+            HashSet<String> cSet = countryMapIn.get(s);
             if (cSet == null)
                 continue;
             ArrayList<String> subCountries = new ArrayList<>(cSet);
@@ -169,7 +171,7 @@ public class MainActivity extends AppCompatActivity {
         countryData.put("All", allCountries);
         ArrayList<String> tempCountryList = new ArrayList<>(countryData.keySet());
         Collections.sort(tempCountryList);
-        SubMenu countryMenu = menu.addSubMenu(R.string.countries);
+        SubMenu countryMenu = menu.addSubMenu(stringCountries);
         for (String s : tempCountryList)
             countryMenu.add(s);
 
@@ -188,7 +190,7 @@ public class MainActivity extends AppCompatActivity {
         languageData.put("All", allLanguages);
         ArrayList<String> tempLanguageList = new ArrayList<>(languageData.keySet());
         Collections.sort(tempLanguageList);
-        SubMenu languageMenu = menu.addSubMenu(R.string.languages);
+        SubMenu languageMenu = menu.addSubMenu(stringLanguages);
         for (String s : tempLanguageList)
             languageMenu.add(s);
 
@@ -196,6 +198,21 @@ public class MainActivity extends AppCompatActivity {
         Collections.sort(newsSourcesDisplayed);
         setTitle(String.format(Locale.getDefault(),"News Gateway (%d)", newsSourcesDisplayed.size() ));
         //listView.setAdapter(new ArrayAdapter<>(this, R.layout.drawer_item, newsSourcesDisplayed));
+
+//        ArrayAdapter<String> adapter = new ArrayAdapter<String>(this,R.layout.drawer_item,R.id.drawerTextView, newsSourcesDisplayed){
+//            @Override
+//            public View getView(int position, View convertView, ViewGroup parent){
+//                View view = super.getView(position, convertView, parent);
+//                TextView ListItemShow = (TextView) view.findViewById(R.id.drawerTextView);
+//                for(int i=0;i<newsSourcesDisplayed.size();i++){
+//
+//                }
+//                ListItemShow.setTextColor(Color.parseColor("#fe00fb"));
+//                return view;
+//            }
+//        };
+
+        progressBar.setVisibility(View.GONE);
 
         ArrayAdapter listAdapter = new ListViewAdapter(this , R.layout.drawer_item , newsSourcesDisplayed, topicsData, colorCodes);
         listView.setAdapter(listAdapter);
@@ -216,7 +233,7 @@ public class MainActivity extends AppCompatActivity {
     @Override
     public void onConfigurationChanged(@NonNull Configuration newConfig) {
         super.onConfigurationChanged(newConfig);
-        // Pass any configuration change to the drawer toggls
+        // Pass any configuration change to the drawer toggles
         actionBarDrawerToggle.onConfigurationChanged(newConfig);
     }
 
@@ -230,9 +247,7 @@ public class MainActivity extends AppCompatActivity {
             return true;
         }
         String title = item.getTitle().toString();
-        String stringTopics = "Topics";
-        String stringCountries = "Countries";
-        String stringLanguages = "Languages";
+
         if(title.equals(stringTopics) || title.equals(stringCountries) || title.equals(stringLanguages)) {
             prev = title;
             return true;
@@ -312,11 +327,13 @@ public class MainActivity extends AppCompatActivity {
     private void selectItem(int position) {
         pager.setBackground(null);
         currentNewsSource = newsSourcesDisplayed.get(position);
+        progressBar.setVisibility(View.VISIBLE);
         new Thread(new NewsDownloaderRunnable(this, nameIDMap.get(currentNewsSource))).start();
         drawerLayout.closeDrawer(listView);
     }
 
     public void setTopHeadlines(ArrayList<NewsHeadline> newsHeadlineArrayList){
+        progressBar.setVisibility(View.GONE);
         setTitle(currentNewsSource);
 
         for (int i = 0; i < pageAdapter.getCount(); i++)
@@ -331,6 +348,21 @@ public class MainActivity extends AppCompatActivity {
         pageAdapter.notifyDataSetChanged();
         pager.setCurrentItem(0);
     }
+
+    public void showError(String issue){
+        progressBar.setVisibility(View.GONE);
+        AlertDialog.Builder builder = new AlertDialog.Builder(this);
+        builder.setTitle("Data Download Failed");
+        builder.setMessage(issue);
+        builder.setPositiveButton("OK", new DialogInterface.OnClickListener() {
+            @Override
+            public void onClick(DialogInterface dialog, int which) {
+            }
+        });
+        AlertDialog dialog = builder.create();
+        dialog.show();
+    }
+
     //////////////////////////////////////////////////////////////////////////////
      //Standard adapter code here
     private class MyPageAdapter extends FragmentPagerAdapter {

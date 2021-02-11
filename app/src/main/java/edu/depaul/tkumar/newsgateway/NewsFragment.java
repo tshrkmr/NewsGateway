@@ -91,6 +91,7 @@ public class NewsFragment extends Fragment {
             } else {
                 LocalDateTime dateTime = convertDates(publishedAt);
                 if(dateTime == null) {
+                    dateTextView.setText(View.GONE);
                 }else {
                     DateTimeFormatter formatter1 = DateTimeFormatter.ofPattern("MMM dd, y H:mm");
                     String convertedDateTime = formatter1.format(dateTime);
@@ -125,7 +126,6 @@ public class NewsFragment extends Fragment {
                         .into(imageView);
                 imageView.setOnClickListener(v -> openNewsItem(url));
             }
-
             return fragment_layout;
         } else {
             return null;
@@ -152,12 +152,11 @@ public class NewsFragment extends Fragment {
     }
 
     public void openNewsItem(String url){
-        if(url == null || url.equals("") || url.equals("no value returned"))
+        if(url == null || url.equals("") || url.equals("no value returned") || url.equals("null"))
             return;
         Intent intent = new Intent(Intent.ACTION_VIEW);
         intent.setData(Uri.parse(url));
         startActivity(intent);
-
     }
 
     @Override
