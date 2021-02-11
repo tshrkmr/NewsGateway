@@ -20,10 +20,10 @@ import static java.net.HttpURLConnection.HTTP_OK;
 
 public class NewsDownloaderRunnable implements Runnable{
 
-    private static final String TAG = "NewsDownloaderRunnable";
     private static final String dataURL = "https://newsapi.org/v2/top-headlines";
     private final MainActivity mainActivity;
     private final String source;
+    private static final String TAG = "NewsDownloaderRunnable";
 
     public NewsDownloaderRunnable(MainActivity mainActivity, String source) {
         this.mainActivity = mainActivity;
@@ -34,7 +34,7 @@ public class NewsDownloaderRunnable implements Runnable{
     public void run() {
         Uri.Builder builderURL = Uri.parse(dataURL).buildUpon();
         builderURL.appendQueryParameter("sources", source);
-        String apiValue1 = "38f6b24dd9c94683bc4fd821d1bba0f9";
+        //String apiValue1 = "38f6b24dd9c94683bc4fd821d1bba0f9";
         String apiValue = "9f195d1f01764b9598c8b2d29108e2bd";
         builderURL.appendQueryParameter("apiKey", apiValue);
         String urlToUse = builderURL.build().toString();
@@ -81,7 +81,6 @@ public class NewsDownloaderRunnable implements Runnable{
             JSONObject jsonObject = new JSONObject(s);
             JSONArray jsonArray = jsonObject.getJSONArray("articles");
 
-            // Here we only want to regions and subregions
             for (int i = 0; i < jsonArray.length(); i++) {
                 String author = "no value returned";
                 String title = "no value returned";

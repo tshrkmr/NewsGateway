@@ -1,7 +1,6 @@
 package edu.depaul.tkumar.newsgateway;
 
 import android.content.Intent;
-import android.net.ParseException;
 import android.net.Uri;
 import android.os.Build;
 import android.os.Bundle;
@@ -30,9 +29,8 @@ import java.util.Locale;
 
 public class NewsFragment extends Fragment {
 
-    private String noValueReturned = "no value returned";
-    private static final String TAG = "NewsFragment";
     String url;
+    private static final String TAG = "NewsFragment";
 
     public NewsFragment() {
         // Required empty public constructor
@@ -74,6 +72,7 @@ public class NewsFragment extends Fragment {
             url = currentNewsHeadline.getUrl();
 
             String title = currentNewsHeadline.getTitle();
+            String noValueReturned = "no value returned";
             if(title.equals("") || title.equals(noValueReturned) || title.equals("null")){
                 newsTitleTextView.setVisibility(View.GONE);
             }else {

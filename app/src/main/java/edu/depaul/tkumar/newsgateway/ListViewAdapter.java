@@ -2,7 +2,6 @@ package edu.depaul.tkumar.newsgateway;
 
 import android.content.Context;
 import android.graphics.Color;
-import android.util.Log;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
@@ -14,40 +13,33 @@ import java.util.HashMap;
 
 public class ListViewAdapter extends ArrayAdapter <String> {
 
-    private final Context mContext;
-    private final int id;
-    private final ArrayList<String> items;
     private final HashMap<String, ArrayList<String>> topicsData;
     private final HashMap<String, String> colorCodes;
+    private final ArrayList<String> items;
+    private final Context lContext;
+    private final int id;
     private static final String TAG = "ListViewAdapter";
 
-    public ListViewAdapter(Context context, int textViewResourceId , ArrayList<String> lst, HashMap<String, ArrayList<String>> tData, HashMap<String, String> cCodes)
+    public ListViewAdapter(Context context, int layoutId , ArrayList<String> lst, HashMap<String, ArrayList<String>> tData, HashMap<String, String> cCodes)
     {
-        super(context, textViewResourceId, lst);
-        mContext = context;
-        id = textViewResourceId;
+        super(context, layoutId, lst);
+        lContext = context;
+        id = layoutId;
         items = lst ;
         topicsData = tData;
         colorCodes = cCodes;
     }
 
-//    public void addFilters(HashMap<String, ArrayList<String>> tData, HashMap<String, String> cCodes){
-//        topicsData.clear();
-//        colorCodes.clear();
-//        topicsData = tData;
-//        colorCodes = cCodes;
-//    }
-
     @Override
     public View getView(int position, View v, ViewGroup parent)
     {
-        View mView = v ;
-        if(mView == null){
-            LayoutInflater vi = (LayoutInflater)mContext.getSystemService(Context.LAYOUT_INFLATER_SERVICE);
-            mView = vi.inflate(id, null);
+        View view = v ;
+        if(view == null){
+            LayoutInflater layoutInflater = (LayoutInflater) lContext.getSystemService(Context.LAYOUT_INFLATER_SERVICE);
+            view = layoutInflater.inflate(id, null);
         }
 
-        TextView text = (TextView) mView.findViewById(R.id.drawerTextView);
+        TextView text = (TextView) view.findViewById(R.id.drawerTextView);
         String item = items.get(position);
 
         for(String s: topicsData.keySet()){
@@ -61,7 +53,7 @@ public class ListViewAdapter extends ArrayAdapter <String> {
                 text.setText(items.get(position));
             }
         }
-        return mView;
+        return view;
     }
 
 }

@@ -11,26 +11,23 @@ import java.io.BufferedReader;
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.InputStreamReader;
-import java.net.HttpURLConnection;
 import java.net.URL;
 import java.nio.charset.StandardCharsets;
 import java.util.ArrayList;
-import java.util.Collections;
 import java.util.HashMap;
 import java.util.HashSet;
-import java.util.List;
 
 import javax.net.ssl.HttpsURLConnection;
 
 import static java.net.HttpURLConnection.HTTP_OK;
 
 public class SourceDownloaderRunnable implements Runnable{
-    private final MainActivity mainActivity;
-    private final HashMap<String, String> countryCodes = new HashMap<>();
+
     private final HashMap<String, String> languageCodes = new HashMap<>();
+    private final HashMap<String, String> countryCodes = new HashMap<>();
     private ArrayList<String> colors = new ArrayList<>();
-    private final HashMap<String, String> colorCodes = new HashMap<>();
     private static final String dataURL = "https://newsapi.org/v2/sources";
+    private final MainActivity mainActivity;
     private static final String TAG = "SourceDownloaderRunnable";
 
     public SourceDownloaderRunnable(MainActivity mainActivity) {
@@ -41,7 +38,7 @@ public class SourceDownloaderRunnable implements Runnable{
     public void run() {
 
         Uri.Builder builderURL = Uri.parse(dataURL).buildUpon();
-        String apiValue1 = "38f6b24dd9c94683bc4fd821d1bba0f9";
+        //String apiValue1 = "38f6b24dd9c94683bc4fd821d1bba0f9";
         String apiValue = "9f195d1f01764b9598c8b2d29108e2bd";
         builderURL.appendQueryParameter("apiKey", apiValue);
 
@@ -72,10 +69,6 @@ public class SourceDownloaderRunnable implements Runnable{
                 conn.disconnect();
                 Log.d(TAG, "run: " + sb.toString());
                 parseJSON(sb.toString());
-//                HashMap<String, HashSet<String>> sourcesMap = parseJSON(sb.toString());
-//                if (sourcesMap != null) {
-//                    //mainActivity.runOnUiThread(() -> mainActivity.setUpSources(sourcesMap));
-//                }
             } else {
                 BufferedReader reader =
                         new BufferedReader((new InputStreamReader(conn.getErrorStream())));
@@ -106,7 +99,6 @@ public class SourceDownloaderRunnable implements Runnable{
             JSONObject jsonObject = new JSONObject(s);
             JSONArray jsonArray = jsonObject.getJSONArray("sources");
 
-            // Here we only want to regions and subregions
             for (int i = 0, j=0; i < jsonArray.length(); i++) {
                 String id = "no value returned";
                 String name = "no value returned";
@@ -168,9 +160,6 @@ public class SourceDownloaderRunnable implements Runnable{
                     cSet.add(name);
                     //Log.d(TAG, "parseJSON: " + name);
                 }
-                //allNewsOutlets.add(name);
-//                if (!idNameMap.containsKey(id))
-//                    idNameMap.put(id, name);
                 mainActivity.updateIdNameMap(id, name);
                 //NewsSources newsSources = new NewsSources(id, name, category.toUpperCase(), languageCodes.get(language.toUpperCase()), countryCodes.get(country.toUpperCase()));
             }
@@ -226,7 +215,6 @@ public class SourceDownloaderRunnable implements Runnable{
             JSONObject jsonObject = new JSONObject(s);
             JSONArray jsonArray = jsonObject.getJSONArray("countries");
 
-            // Here we only want to regions and subregions
             for (int i = 0; i < jsonArray.length(); i++) {
                 String code = "no value returned";
                 String name = "no value returned";
@@ -239,7 +227,6 @@ public class SourceDownloaderRunnable implements Runnable{
                     name = sources.getString("name");
                     //Log.d(TAG, "parseJSON: " + name);
                 }
-                //NewsSources newsSources = new NewsSources(id, name, category, language, country);
                 if (!countryCodes.containsKey(code))
                     countryCodes.put(code, name);
             }
@@ -282,7 +269,6 @@ public class SourceDownloaderRunnable implements Runnable{
             JSONObject jsonObject = new JSONObject(s);
             JSONArray jsonArray = jsonObject.getJSONArray("colors");
 
-            // Here we only want to regions and subregions
             for (int i = 0; i < jsonArray.length(); i++) {
                 String color = "no value returned";
                 JSONObject sources = (JSONObject) jsonArray.get(i);

@@ -22,16 +22,12 @@ import android.view.Menu;
 import android.view.MenuItem;
 import android.view.SubMenu;
 import android.view.View;
-import android.view.ViewGroup;
+
 import android.widget.ArrayAdapter;
 import android.widget.ListView;
 import android.widget.TextView;
 
-import org.jetbrains.annotations.NotNull;
-import org.w3c.dom.Text;
-
 import java.util.ArrayList;
-import java.util.Arrays;
 import java.util.Collection;
 import java.util.Collections;
 import java.util.HashMap;
@@ -48,22 +44,22 @@ public class MainActivity extends AppCompatActivity {
     private final HashMap<String, ArrayList<String>> topicsData = new HashMap<>();
     private final HashMap<String, ArrayList<String>> languageData = new HashMap<>();
     private final HashMap<String, ArrayList<String>> countryData = new HashMap<>();
-    private final HashMap<String, String> nameIDMap = new HashMap<>();
-    private final ArrayList<String> allNewsOutlets =new ArrayList<>();
-    private final ArrayList<String> newsSourcesDisplayed = new ArrayList<>();
     private final HashMap<String, String> colorCodes = new HashMap<>();
-    private String prev;
-    String topic = "All";
-    String language = "All";
-    String country = "All";
-    private DrawerLayout drawerLayout;
-    private ListView listView;
-    private ActionBarDrawerToggle actionBarDrawerToggle;
-    private Menu menu;
-    private List<Fragment> fragments;
-    private ViewPager pager;
+    private final HashMap<String, String> nameIDMap = new HashMap<>();
+    private final ArrayList<String> newsSourcesDisplayed = new ArrayList<>();
+    private final ArrayList<String> allNewsOutlets =new ArrayList<>();
     private String currentNewsSource;
+    private String prev;
+    private String topic = "All";
+    private String language = "All";
+    private String country = "All";
+    private ActionBarDrawerToggle actionBarDrawerToggle;
+    private DrawerLayout drawerLayout;
+    private List<Fragment> fragments;
+    private ListView listView;
     private MyPageAdapter pageAdapter;
+    private ViewPager pager;
+    private Menu menu;
     private static final String TAG = "MainActivity";
 
     @Override
@@ -106,16 +102,7 @@ public class MainActivity extends AppCompatActivity {
     @Override
     public boolean onCreateOptionsMenu(Menu menu) {
         this.menu = menu;
-        for(int i = 0; i<this.menu.size();i++){
-            MenuItem menuItem = menu.getItem(i);
-        }
         return true;
-    }
-
-    @Override
-    public boolean onPrepareOptionsMenu(Menu menu) {
-
-        return super.onPrepareOptionsMenu(menu);
     }
 
     public void setUpColorMap(String category, String color) {
@@ -210,18 +197,6 @@ public class MainActivity extends AppCompatActivity {
         setTitle(String.format(Locale.getDefault(),"News Gateway (%d)", newsSourcesDisplayed.size() ));
         //listView.setAdapter(new ArrayAdapter<>(this, R.layout.drawer_item, newsSourcesDisplayed));
 
-//        ArrayAdapter<String> adapter = new ArrayAdapter<String>(this,R.layout.drawer_item,R.id.drawerTextView, newsSourcesDisplayed){
-//            @Override
-//            public View getView(int position, View convertView, ViewGroup parent){
-//                View view = super.getView(position, convertView, parent);
-//                TextView ListItemShow = (TextView) view.findViewById(R.id.drawerTextView);
-//                for(int i=0;i<newsSourcesDisplayed.size();i++){
-//
-//                }
-//                ListItemShow.setTextColor(Color.parseColor("#fe00fb"));
-//                return view;
-//            }
-//        };
         ArrayAdapter listAdapter = new ListViewAdapter(this , R.layout.drawer_item , newsSourcesDisplayed, topicsData, colorCodes);
         listView.setAdapter(listAdapter);
 
@@ -230,12 +205,6 @@ public class MainActivity extends AppCompatActivity {
             getSupportActionBar().setHomeButtonEnabled(true);
         }
     }
-
-//    @Override
-//    public View getView(int position, View convertView, ViewGroup parent) {
-//        return super.getView(position, convertView, parent);
-//    }
-        // You need the 2 below to make the drawer-toggle work properly:
 
     @Override
     protected void onPostCreate(Bundle savedInstanceState) {
@@ -279,35 +248,43 @@ public class MainActivity extends AppCompatActivity {
             language = title;
         }
 
+        ArrayList<String> finalList = new ArrayList<>();
         newsSourcesDisplayed.clear();
-        List<List<String>> lists = new ArrayList<List<String>>();
+        //List<List<String>> lists = new ArrayList<>();
         ArrayList<String> tLst = topicsData.get(topic);
-        lists.add(tLst);
+        //lists.add(tLst);
         ArrayList<String> lLst = languageData.get(language);
-        lists.add(lLst);
+        //lists.add(lLst);
         ArrayList<String> cLst = countryData.get(country);
-        lists.add(cLst);
-        newsSourcesDisplayed.addAll(getCommonElements(lists));
+        //lists.add(cLst);
+
+        if(tLst != null)
+            finalList.addAll(tLst);
+        if(lLst != null)
+            finalList.retainAll(lLst);
+        if(cLst != null)
+            finalList.retainAll(cLst);
+
+        newsSourcesDisplayed.addAll(finalList);
         if(newsSourcesDisplayed.size() == 0){
             noNewsSourceDialog(topic, country, language);
         }
         setTitle(String.format(Locale.getDefault(),"News Gateway (%d)", newsSourcesDisplayed.size() ));
-
         ((ArrayAdapter) listView.getAdapter()).notifyDataSetChanged();
         return super.onOptionsItemSelected(item);
     }
 
-    public static <T> Set<T> getCommonElements(Collection<? extends Collection<T>> collections) {
-        Set<T> common = new LinkedHashSet<T>();
-        if (!collections.isEmpty()) {
-            Iterator<? extends Collection<T>> iterator = collections.iterator();
-            common.addAll(iterator.next());
-            while (iterator.hasNext()) {
-                common.retainAll(iterator.next());
-            }
-        }
-        return common;
-    }
+//    public static <T> Set<T> getCommonElements(Collection<? extends Collection<T>> collections) {
+//        Set<T> common = new LinkedHashSet<T>();
+//        if (!collections.isEmpty()) {
+//            Iterator<? extends Collection<T>> iterator = collections.iterator();
+//            common.addAll(iterator.next());
+//            while (iterator.hasNext()) {
+//                common.retainAll(iterator.next());
+//            }
+//        }
+//        return common;
+//    }
 
     private void noNewsSourceDialog(String topic, String country, String language){
         LayoutInflater layoutInflater = LayoutInflater.from(this);
@@ -396,17 +373,4 @@ public class MainActivity extends AppCompatActivity {
             baseId += getCount() + n;
         }
     }
-
-
-//    @Override
-//    protected void onSaveInstanceState(@NonNull @NotNull Bundle outState) {
-//        outState.putSerializable("listView", newsSourcesDisplayed);
-//        super.onSaveInstanceState(outState);
-//    }
-//
-//    @Override
-//    protected void onRestoreInstanceState(@NonNull Bundle savedInstanceState) {
-//        newsSourcesDisplayed.addAll(savedInstanceState.getStringArrayList("listView"));
-//        super.onRestoreInstanceState(savedInstanceState);
-//    }
 }
