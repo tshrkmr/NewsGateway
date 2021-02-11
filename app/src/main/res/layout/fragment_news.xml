@@ -29,6 +29,7 @@
             android:layout_height="wrap_content"
             android:layout_marginTop="8dp"
             android:textSize="15sp"
+            android:textStyle="italic"
             app:layout_constraintStart_toStartOf="@+id/fragmentNewsTitleTextView"
             app:layout_constraintTop_toBottomOf="@+id/fragmentNewsTitleTextView" />
 
@@ -36,8 +37,8 @@
             android:id="@+id/fragmentAuthorTextView"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
-            android:layout_marginTop="8dp"
             android:textSize="15sp"
+            android:textStyle="italic"
             app:layout_constraintStart_toStartOf="@+id/fragmentDateTextView"
             app:layout_constraintTop_toBottomOf="@+id/fragmentDateTextView" />
 
@@ -58,7 +59,7 @@
             android:layout_width="0dp"
             android:layout_height="0dp"
             android:layout_marginTop="8dp"
-            android:layout_marginBottom="16dp"
+            android:layout_marginBottom="8dp"
             android:scrollbars="vertical"
             android:textAlignment="viewStart"
             android:textSize="18sp"
@@ -75,5 +76,7 @@
             app:layout_constraintBottom_toBottomOf="parent"
             app:layout_constraintEnd_toEndOf="parent"
             app:layout_constraintStart_toStartOf="parent" />
+
+
     </androidx.constraintlayout.widget.ConstraintLayout>
 </FrameLayout>

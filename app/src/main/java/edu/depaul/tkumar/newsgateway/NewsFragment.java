@@ -1,6 +1,8 @@
 package edu.depaul.tkumar.newsgateway;
 
+import android.content.Intent;
 import android.net.ParseException;
+import android.net.Uri;
 import android.os.Build;
 import android.os.Bundle;
 
@@ -17,14 +19,20 @@ import android.widget.TextView;
 
 import com.squareup.picasso.Picasso;
 
+import org.jetbrains.annotations.NotNull;
+
 import java.time.LocalDateTime;
 import java.time.format.DateTimeFormatter;
+import java.time.format.DateTimeParseException;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Locale;
 
 public class NewsFragment extends Fragment {
+
+    private String noValueReturned = "no value returned";
     private static final String TAG = "NewsFragment";
+    String url;
 
     public NewsFragment() {
         // Required empty public constructor
@@ -63,36 +71,60 @@ public class NewsFragment extends Fragment {
             TextView pageNumberTextView = fragment_layout.findViewById(R.id.fragmentPagenumberTextView);
             ImageView imageView = fragment_layout.findViewById(R.id.fragmentImageView);
 
-            newsTitleTextView.setText(currentNewsHeadline.getTitle());
+            url = currentNewsHeadline.getUrl();
+
+            String title = currentNewsHeadline.getTitle();
+            if(title.equals("") || title.equals(noValueReturned) || title.equals("null")){
+                newsTitleTextView.setVisibility(View.GONE);
+            }else {
+                newsTitleTextView.setText(currentNewsHeadline.getTitle());
+                newsTitleTextView.setOnClickListener(new View.OnClickListener() {
+                    @Override
+                    public void onClick(View v) {
+                        openNewsItem(url);
+                    }
+                });
+            }
 
             String publishedAt = currentNewsHeadline.getPublishedAt();
-            if (publishedAt.equals("") || publishedAt.equals("no value returned")) {
-                dateTextView.setVisibility(View.INVISIBLE);
+            if (publishedAt.equals("") || publishedAt.equals("null") || publishedAt.equals(noValueReturned)) {
+                dateTextView.setVisibility(View.GONE);
             } else {
-//                DateTimeFormatter formatter = DateTimeFormatter.ISO_OFFSET_DATE_TIME;
-//                LocalDateTime dateTime = LocalDateTime.parse(publishedAt, formatter);
-
                 LocalDateTime dateTime = convertDates(publishedAt);
-                DateTimeFormatter formatter1 = DateTimeFormatter.ofPattern("MMM dd, y H:mm");
-                String convertedDateTime = formatter1.format(dateTime);
-                //Log.d(TAG, "onCreateView: " + convertedDateTime);
-                dateTextView.setText(convertedDateTime);
+                if(dateTime == null) {
+                }else {
+                    DateTimeFormatter formatter1 = DateTimeFormatter.ofPattern("MMM dd, y H:mm");
+                    String convertedDateTime = formatter1.format(dateTime);
+                    //Log.d(TAG, "onCreateView: " + convertedDateTime);
+                    dateTextView.setText(convertedDateTime);
+                }
             }
+
             String author = currentNewsHeadline.getAuthor();
-            if (author.equals("") || author.equals("no value returned")) {
-                authorTextView.setVisibility(View.INVISIBLE);
+            if (author.equals("") ||author.equals("null")  || author.equals(noValueReturned)) {
+                authorTextView.setVisibility(View.GONE);
             } else {
                 authorTextView.setText(currentNewsHeadline.getAuthor());
             }
-            descriptionTextView.setText(currentNewsHeadline.getDescription());
+
+            String description = currentNewsHeadline.getDescription();
+            if(!description.equals("") && !description.equals("null") && !description.equals(noValueReturned)) {
+                descriptionTextView.setText(currentNewsHeadline.getDescription());
+                descriptionTextView.setOnClickListener(v -> openNewsItem(url));
+            }else{
+                descriptionTextView.setVisibility(View.GONE);
+            }
+
             pageNumberTextView.setText(String.format(Locale.US, "%d of %d", index, total));
+
             String urlToImage = currentNewsHeadline.getUrlToImage();
-            if (!urlToImage.equals("no value returned") && !urlToImage.equals("")) {
+            if (!urlToImage.equals("no value returned") && !urlToImage.equals("") && !urlToImage.equals("null")) {
                 Picasso.get().load(currentNewsHeadline.getUrlToImage())
                         //.resize(width, height)
                         .placeholder(R.drawable.loading)
                         .error(R.drawable.brokenimage)
                         .into(imageView);
+                imageView.setOnClickListener(v -> openNewsItem(url));
             }
 
             return fragment_layout;
@@ -103,7 +135,7 @@ public class NewsFragment extends Fragment {
 
     @RequiresApi(api = Build.VERSION_CODES.O)
     private LocalDateTime convertDates(String unformattedDate) {
-        ArrayList<DateTimeFormatter> knownFormats = new ArrayList<>();
+        List<DateTimeFormatter> knownFormats = new ArrayList<>();
         DateTimeFormatter formatter = DateTimeFormatter.ofPattern("y-MM-dd'T'H:mm:ss'Z'");
         knownFormats.add(formatter);
         DateTimeFormatter formatter1 = DateTimeFormatter.ISO_OFFSET_DATE_TIME;
@@ -113,10 +145,24 @@ public class NewsFragment extends Fragment {
             try {
                 LocalDateTime dateTime = LocalDateTime.parse(unformattedDate, dtf);
                 return dateTime;
-            } catch (ParseException e) {
+            } catch (DateTimeParseException e) {
                 e.printStackTrace();
             }
         }
         return null;
+    }
+
+    public void openNewsItem(String url){
+        if(url == null || url.equals("") || url.equals("no value returned"))
+            return;
+        Intent intent = new Intent(Intent.ACTION_VIEW);
+        intent.setData(Uri.parse(url));
+        startActivity(intent);
+
+    }
+
+    @Override
+    public void onSaveInstanceState(@NonNull @NotNull Bundle outState) {
+        super.onSaveInstanceState(outState);
     }
 }

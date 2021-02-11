@@ -1,0 +1,44 @@
+{
+  "colors": [
+    {
+      "color": "#ff00ff00",
+      "name": "COLOR.GREEN"
+    },
+    {
+      "color": "#ffff0000",
+      "name": "COLOR.RED"
+    },
+    {
+      "color": "#ff0000ff" ,
+      "name":"COLOR.BLUE"
+    },
+    {
+      "color": "#ff00ffff",
+      "name": "COLOR.CYAN"
+    },
+    {
+      "color": "#ffffa500",
+      "name": "COLOR.ORANGE"
+    },
+    {
+      "color": "#ffff00ff",
+      "name": "COLOR.MAGENTA"
+    },
+    {
+      "color": "#ff888888",
+      "name": "COLOR.YELLOW"
+    },
+    {
+      "color": "#ff4B0082",
+      "name": "COLOR.INDIGO"
+    },
+    {
+      "color": "#ff888888",
+      "name": "COLOR.GRAY"
+    },
+    {
+      "color": "#ff444444",
+      "name": "COLOR.DKGRAY"
+    }
+  ]
+}

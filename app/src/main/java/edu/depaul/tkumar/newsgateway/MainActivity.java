@@ -12,18 +12,26 @@ import androidx.viewpager.widget.ViewPager;
 
 import android.content.DialogInterface;
 import android.content.res.Configuration;
+import android.graphics.Color;
 import android.os.Bundle;
+import android.text.SpannableString;
+import android.text.style.ForegroundColorSpan;
 import android.util.Log;
 import android.view.LayoutInflater;
 import android.view.Menu;
 import android.view.MenuItem;
 import android.view.SubMenu;
 import android.view.View;
+import android.view.ViewGroup;
 import android.widget.ArrayAdapter;
 import android.widget.ListView;
 import android.widget.TextView;
 
+import org.jetbrains.annotations.NotNull;
+import org.w3c.dom.Text;
+
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.Collection;
 import java.util.Collections;
 import java.util.HashMap;
@@ -37,20 +45,17 @@ import java.util.Set;
 
 public class MainActivity extends AppCompatActivity {
 
-    //API Key - 38f6b24dd9c94683bc4fd821d1bba0f9
     private final HashMap<String, ArrayList<String>> topicsData = new HashMap<>();
     private final HashMap<String, ArrayList<String>> languageData = new HashMap<>();
     private final HashMap<String, ArrayList<String>> countryData = new HashMap<>();
     private final HashMap<String, String> nameIDMap = new HashMap<>();
     private final ArrayList<String> allNewsOutlets =new ArrayList<>();
     private final ArrayList<String> newsSourcesDisplayed = new ArrayList<>();
+    private final HashMap<String, String> colorCodes = new HashMap<>();
     private String prev;
     String topic = "All";
     String language = "All";
     String country = "All";
-    private final String stringTopics = "Topics";
-    private final String stringCountries = "Countries";
-    private final String stringLanguages = "Languages";
     private DrawerLayout drawerLayout;
     private ListView listView;
     private ActionBarDrawerToggle actionBarDrawerToggle;
@@ -58,7 +63,6 @@ public class MainActivity extends AppCompatActivity {
     private List<Fragment> fragments;
     private ViewPager pager;
     private String currentNewsSource;
-    //private String getCurrentNewsSourceId;
     private MyPageAdapter pageAdapter;
     private static final String TAG = "MainActivity";
 
@@ -102,7 +106,21 @@ public class MainActivity extends AppCompatActivity {
     @Override
     public boolean onCreateOptionsMenu(Menu menu) {
         this.menu = menu;
+        for(int i = 0; i<this.menu.size();i++){
+            MenuItem menuItem = menu.getItem(i);
+        }
         return true;
+    }
+
+    @Override
+    public boolean onPrepareOptionsMenu(Menu menu) {
+
+        return super.onPrepareOptionsMenu(menu);
+    }
+
+    public void setUpColorMap(String category, String color) {
+        if (!colorCodes.containsKey(category.toUpperCase()))
+            colorCodes.put(category.toUpperCase(), color);
     }
 
     public void updateIdNameMap(String id, String name){
@@ -126,7 +144,6 @@ public class MainActivity extends AppCompatActivity {
             Collections.sort(subTopics);
             topicsData.put(s, subTopics);
             allTopics.addAll(subTopics);
-            //allNewsOutlets1.addAll(subTopics);
             //Log.d(TAG, "setUpSources: " + s + " " +  subTopics);
         }
         Collections.sort(allTopics);
@@ -134,8 +151,21 @@ public class MainActivity extends AppCompatActivity {
         ArrayList<String> tempTopicList = new ArrayList<>(topicsData.keySet());
         Collections.sort(tempTopicList);
         SubMenu topicsMenu = menu.addSubMenu(R.string.topics);
-        for (String s : tempTopicList)
+        int i = 0;
+        for (String s : tempTopicList) {
             topicsMenu.add(s);
+            if(i==0){
+                i++;
+                continue;
+            }else {
+                final MenuItem menuItem = topicsMenu.getItem(i);
+                i++;
+                SpannableString spannableString = new SpannableString(menuItem.getTitle().toString());
+                String color = colorCodes.get(spannableString.toString());
+                spannableString.setSpan(new ForegroundColorSpan(Color.parseColor(color)), 0, spannableString.length(), 0);
+                menuItem.setTitle(spannableString);
+            }
+        }
 
 
         for (String s : coountryMapIn.keySet()) {
@@ -178,14 +208,34 @@ public class MainActivity extends AppCompatActivity {
         newsSourcesDisplayed.addAll(allNewsOutlets);
         Collections.sort(newsSourcesDisplayed);
         setTitle(String.format(Locale.getDefault(),"News Gateway (%d)", newsSourcesDisplayed.size() ));
-        listView.setAdapter(new ArrayAdapter<>(this, R.layout.drawer_item, newsSourcesDisplayed));
+        //listView.setAdapter(new ArrayAdapter<>(this, R.layout.drawer_item, newsSourcesDisplayed));
+
+//        ArrayAdapter<String> adapter = new ArrayAdapter<String>(this,R.layout.drawer_item,R.id.drawerTextView, newsSourcesDisplayed){
+//            @Override
+//            public View getView(int position, View convertView, ViewGroup parent){
+//                View view = super.getView(position, convertView, parent);
+//                TextView ListItemShow = (TextView) view.findViewById(R.id.drawerTextView);
+//                for(int i=0;i<newsSourcesDisplayed.size();i++){
+//
+//                }
+//                ListItemShow.setTextColor(Color.parseColor("#fe00fb"));
+//                return view;
+//            }
+//        };
+        ArrayAdapter listAdapter = new ListViewAdapter(this , R.layout.drawer_item , newsSourcesDisplayed, topicsData, colorCodes);
+        listView.setAdapter(listAdapter);
 
         if (getSupportActionBar() != null) {
             getSupportActionBar().setDisplayHomeAsUpEnabled(true);
             getSupportActionBar().setHomeButtonEnabled(true);
         }
     }
-    // You need the 2 below to make the drawer-toggle work properly:
+
+//    @Override
+//    public View getView(int position, View convertView, ViewGroup parent) {
+//        return super.getView(position, convertView, parent);
+//    }
+        // You need the 2 below to make the drawer-toggle work properly:
 
     @Override
     protected void onPostCreate(Bundle savedInstanceState) {
@@ -211,6 +261,9 @@ public class MainActivity extends AppCompatActivity {
             return true;
         }
         String title = item.getTitle().toString();
+        String stringTopics = "Topics";
+        String stringCountries = "Countries";
+        String stringLanguages = "Languages";
         if(title.equals(stringTopics) || title.equals(stringCountries) || title.equals(stringLanguages)) {
             prev = title;
             return true;
@@ -342,6 +395,18 @@ public class MainActivity extends AppCompatActivity {
             // shift the ID returned by getItemId outside the range of all previous fragments
             baseId += getCount() + n;
         }
-
     }
+
+
+//    @Override
+//    protected void onSaveInstanceState(@NonNull @NotNull Bundle outState) {
+//        outState.putSerializable("listView", newsSourcesDisplayed);
+//        super.onSaveInstanceState(outState);
+//    }
+//
+//    @Override
+//    protected void onRestoreInstanceState(@NonNull Bundle savedInstanceState) {
+//        newsSourcesDisplayed.addAll(savedInstanceState.getStringArrayList("listView"));
+//        super.onRestoreInstanceState(savedInstanceState);
+//    }
 }
