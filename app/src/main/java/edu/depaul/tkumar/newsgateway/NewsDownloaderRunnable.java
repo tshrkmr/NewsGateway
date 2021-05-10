@@ -31,8 +31,8 @@ public class NewsDownloaderRunnable implements Runnable{
     public void run() {
         Uri.Builder builderURL = Uri.parse(dataURL).buildUpon();
         builderURL.appendQueryParameter("sources", source);
-        //String apiValue1 = "38f6b24dd9c94683bc4fd821d1bba0f9";
-        String apiValue = "9f195d1f01764b9598c8b2d29108e2bd";
+        //String apiValue1 = "";
+        String apiValue = "";
         builderURL.appendQueryParameter("apiKey", apiValue);
         String urlToUse = builderURL.build().toString();
         try {
